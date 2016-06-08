@@ -31,6 +31,31 @@ namespace Free.Core.Tests
 			HashSet<int> hs2 = new HashSet<int>(set2);
 			HashSet<int> hs3 = new HashSet<int>(set3);
 
+			#region Pseudo-LINQ-Extensions
+			Assert.AreEqual(1, lhs1.First());
+			Assert.AreEqual(9, lhs1.Last());
+			Assert.AreEqual(0, lhs3.Last());
+			Assert.Throws<InvalidOperationException>(() => lhsEmpty.First());
+			Assert.Throws<InvalidOperationException>(() => lhsEmpty.Last());
+			Assert.DoesNotThrow(() => lhsEmpty.FirstOrDefault());
+			Assert.DoesNotThrow(() => lhsEmpty.LastOrDefault());
+			Assert.AreEqual(default(int), lhsEmpty.FirstOrDefault());
+			Assert.AreEqual(default(int), lhsEmpty.LastOrDefault());
+
+			Assert.DoesNotThrow(() => lhsEmpty.Reverse());
+			List<int> reversed = new List<int>(lhs3.Reverse());
+			Assert.AreEqual(lhs3.Count, reversed.Count);
+			Assert.AreEqual(0, reversed[0]);
+			Assert.AreEqual(9, reversed[1]);
+			Assert.AreEqual(8, reversed[2]);
+			Assert.AreEqual(6, reversed[3]);
+			Assert.AreEqual(5, reversed[4]);
+			Assert.AreEqual(4, reversed[5]);
+			Assert.AreEqual(3, reversed[6]);
+			Assert.AreEqual(2, reversed[7]);
+			Assert.AreEqual(1, reversed[8]);
+			#endregion
+
 			#region SetEquals
 			Assert.IsTrue(lhsEmpty.SetEquals(lhsEmpty));
 			Assert.IsTrue(lhs1.SetEquals(lhs1));
@@ -592,6 +617,7 @@ namespace Free.Core.Tests
 		[Test]
 		public static void LinkedDictionaryTest()
 		{
+			LinkedDictionary<string, int> ldEmpty = new LinkedDictionary<string, int>();
 			LinkedDictionary<string, int> a = new LinkedDictionary<string, int>();
 
 			a.Add("a1", 1);
@@ -599,6 +625,33 @@ namespace Free.Core.Tests
 			a.Add("a123", 123);
 			a.Add("a4", 4);
 			a.Add("a5", 5);
+
+			#region Pseudo-LINQ-Extensions
+			Assert.AreEqual("a1", a.First().Key);
+			Assert.AreEqual(1, a.First().Value);
+			Assert.AreEqual("a5", a.Last().Key);
+			Assert.AreEqual(5, a.Last().Value);
+			Assert.Throws<InvalidOperationException>(() => ldEmpty.First());
+			Assert.Throws<InvalidOperationException>(() => ldEmpty.Last());
+			Assert.DoesNotThrow(() => ldEmpty.FirstOrDefault());
+			Assert.DoesNotThrow(() => ldEmpty.LastOrDefault());
+			Assert.AreEqual(default(KeyValuePair<string, int>), ldEmpty.FirstOrDefault());
+			Assert.AreEqual(default(KeyValuePair<string, int>), ldEmpty.LastOrDefault());
+
+			Assert.DoesNotThrow(() => ldEmpty.Reverse());
+			List<KeyValuePair<string, int>> reversed = new List<KeyValuePair<string, int>>(a.Reverse());
+			Assert.AreEqual(a.Count, reversed.Count);
+			Assert.AreEqual("a5", reversed[0].Key);
+			Assert.AreEqual(5, reversed[0].Value);
+			Assert.AreEqual("a4", reversed[1].Key);
+			Assert.AreEqual(4, reversed[1].Value);
+			Assert.AreEqual("a123", reversed[2].Key);
+			Assert.AreEqual(123, reversed[2].Value);
+			Assert.AreEqual("a12", reversed[3].Key);
+			Assert.AreEqual(12, reversed[3].Value);
+			Assert.AreEqual("a1", reversed[4].Key);
+			Assert.AreEqual(1, reversed[4].Value);
+			#endregion
 
 			Assert.AreEqual(5, a.Count);
 
