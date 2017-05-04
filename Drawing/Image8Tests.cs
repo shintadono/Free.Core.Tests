@@ -7,11 +7,6 @@ namespace Free.Core.Tests.Drawing
 	[TestFixture]
 	public class Image8Tests
 	{
-		public static void Main()
-		{
-			Image8GetSubImageTest();
-		}
-
 		[Test]
 		public static void Image8ConstructorTest()
 		{
