@@ -62,6 +62,7 @@
     <Compile Include="Drawing\FloatImageTests.cs" />
     <Compile Include="Drawing\Image16Tests.cs" />
     <Compile Include="Drawing\Image8Tests.cs" />
+    <Compile Include="Drawing\RasterTests.cs" />
     <Compile Include="Tests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
