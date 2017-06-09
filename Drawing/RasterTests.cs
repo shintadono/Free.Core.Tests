@@ -1,5 +1,4 @@
-﻿using System;
-using Free.Core.Drawing;
+﻿using Free.Core.Drawing;
 using NUnit.Framework;
 
 namespace Free.Core.Tests.Drawing
@@ -246,6 +245,103 @@ namespace Free.Core.Tests.Drawing
 					Assert.AreNotEqual(oExp[x, y], closed[x, y], "closed[{0}, {1}]", x, y);
 				}
 			}
+		}
+
+		[Test]
+		public static void RasterFilterTests()
+		{
+			int width = 21;
+			int height = 17;
+			int tileWidth = 4;
+			int tileHeight = 3;
+
+			int tileSize = tileWidth * tileHeight;
+			int numberOfTilesX = (width + tileWidth - 1) / tileWidth;
+			int numberOfTilesY = (height + tileHeight - 1) / tileHeight;
+			int numberOfTiles = numberOfTilesX * numberOfTilesY;
+
+			Raster<float> raster = new Raster<float>(width, height, true, tileWidth, tileHeight);
+
+			#region Check raster
+			Assert.AreEqual(width, raster.Width);
+			Assert.AreEqual(height, raster.Height);
+			Assert.AreEqual(1, raster.NumberOfChannels);
+			Assert.AreEqual(PlanarConfiguration.Continuously, raster.PlanarConfiguration);
+
+			Assert.AreEqual(StorageLayout.Tiled, raster.StorageLayout);
+			Assert.AreEqual(tileWidth, raster.TileWidth);
+			Assert.AreEqual(tileHeight, raster.TileHeight);
+			Assert.AreEqual(numberOfTilesX, raster.NumberOfTileX);
+			Assert.AreEqual(numberOfTilesY, raster.NumberOfTileY);
+
+			Assert.NotNull(raster.ChannelTypes);
+			Assert.AreEqual(1, raster.ChannelTypes.Length);
+			Assert.AreEqual(ChannelType.Single, raster.ChannelTypes[0]);
+
+			Assert.NotNull(raster.Data);
+			Assert.AreEqual(numberOfTiles, raster.Data.Length);
+			for (int i = 0; i < raster.Data.Length; i++)
+				Assert.AreEqual(tileSize, raster.Data[i].Length, "raster.Data[{0}]", i);
+			#endregion
+
+			// Add some other values != default.
+			raster[0, 0] = raster[20, 0] = raster[20, 16] = raster[0, 16] = // in corners
+			raster[6, 0] = raster[0, 5] = raster[20, 9] = raster[13, 16] = // on edges
+			raster[16, 5] = raster[6, 8] = raster[10, 13] = 5; // in between
+
+			// Filter the raster.
+			var filtered = raster.Filter(se =>
+			{
+				// If the center if not zero, we count the zeros in the structure element and return it.
+				if (se[se.Length / 2] == 0) return 0;
+
+				int countDefaults = 0;
+				for (int i = 0; i < se.Length; i++)
+				{
+					if (se[i] == 0) countDefaults++;
+				}
+
+				return countDefaults;
+			}, 1.5, float.NaN);
+
+			#region Check filtered
+			Assert.AreEqual(width, filtered.Width);
+			Assert.AreEqual(height, filtered.Height);
+			Assert.AreEqual(1, filtered.NumberOfChannels);
+			Assert.AreEqual(PlanarConfiguration.Continuously, filtered.PlanarConfiguration);
+
+			Assert.AreEqual(StorageLayout.Tiled, filtered.StorageLayout);
+			Assert.AreEqual(tileWidth, filtered.TileWidth);
+			Assert.AreEqual(tileHeight, filtered.TileHeight);
+			Assert.AreEqual(numberOfTilesX, filtered.NumberOfTileX);
+			Assert.AreEqual(numberOfTilesY, filtered.NumberOfTileY);
+
+			Assert.NotNull(filtered.ChannelTypes);
+			Assert.AreEqual(1, filtered.ChannelTypes.Length);
+			Assert.AreEqual(ChannelType.SInt, filtered.ChannelTypes[0]);
+
+			Assert.NotNull(filtered.Data);
+			Assert.AreEqual(numberOfTiles, filtered.Data.Length);
+			for (int i = 0; i < filtered.Data.Length; i++)
+				Assert.AreEqual(tileSize, filtered.Data[i].Length, "raster.Data[{0}]", i);
+			#endregion
+
+			// In the corners, there should be 3 zeros neighboring the cell.
+			Assert.AreEqual(3, filtered[0, 0]);
+			Assert.AreEqual(3, filtered[20, 0]);
+			Assert.AreEqual(3, filtered[20, 16]);
+			Assert.AreEqual(3, filtered[0, 16]);
+
+			// At the edges, there should be 5 zeros neighboring the cell.
+			Assert.AreEqual(5, filtered[6, 0]);
+			Assert.AreEqual(5, filtered[0, 5]);
+			Assert.AreEqual(5, filtered[20, 9]);
+			Assert.AreEqual(5, filtered[13, 16]);
+
+			// At the edges, there should be 8 zeros neighboring the cell.
+			Assert.AreEqual(8, filtered[16, 5]);
+			Assert.AreEqual(8, filtered[6, 8]);
+			Assert.AreEqual(8, filtered[10, 13]);
 		}
 	}
 }
