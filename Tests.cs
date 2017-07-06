@@ -762,7 +762,7 @@ namespace Free.Core.Tests
 			};
 
 			var result1 = new Dictionary<int, HashSet<int>>();
-			hashSet.VisitAllCombinations((a, b) =>
+			hashSet.ForAllCombinations((a, b) =>
 			{
 				Assert.AreNotEqual(a, b);
 				int key = Math.Min(a, b);
@@ -775,7 +775,7 @@ namespace Free.Core.Tests
 			});
 
 			var result2 = new Dictionary<int, HashSet<int>>();
-			foreach(var combi in hashSet.GetAllCombinations())
+			foreach(var combi in hashSet.ForAllCombinations())
 			{
 				int a = combi.Item1, b = combi.Item2;
 
