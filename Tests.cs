@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Free.Core.Collections.Generic;
+using Free.Core.Collections.Generic.Extensions;
 using NUnit.Framework;
 
 namespace Free.Core.Tests
@@ -745,6 +746,59 @@ namespace Free.Core.Tests
 				int cur = queue.Pop();
 				Assert.LessOrEqual(lastMin, cur);
 				lastMin = cur;
+			}
+		}
+
+		[Test]
+		public static void HashSetExtensionsTest()
+		{
+			var hashSet = new HashSet<int> { 1, 5, 15, 3, 7 };
+			var expected = new Dictionary<int, HashSet<int>>
+			{
+				[1] = new HashSet<int> { 3, 5, 7, 15 },
+				[3] = new HashSet<int> { 5, 7, 15 },
+				[5] = new HashSet<int> { 7, 15 },
+				[7] = new HashSet<int> { 15 },
+			};
+
+			var result1 = new Dictionary<int, HashSet<int>>();
+			hashSet.VisitAllCombinations((a, b) =>
+			{
+				Assert.AreNotEqual(a, b);
+				int key = Math.Min(a, b);
+				int val = Math.Max(a, b);
+
+				HashSet<int> set;
+				if (!result1.TryGetValue(key, out set)) result1[key] = set = new HashSet<int>();
+
+				Assert.IsTrue(set.Add(val));
+			});
+
+			var result2 = new Dictionary<int, HashSet<int>>();
+			foreach(var combi in hashSet.GetAllCombinations())
+			{
+				int a = combi.Item1, b = combi.Item2;
+
+				Assert.AreNotEqual(a, b);
+				int key = Math.Min(a, b);
+				int val = Math.Max(a, b);
+
+				HashSet<int> set;
+				if (!result2.TryGetValue(key, out set)) result2[key] = set = new HashSet<int>();
+
+				Assert.IsTrue(set.Add(val));
+			}
+
+			foreach (var key in expected.Keys)
+			{
+				HashSet<int> setExpected = expected[key], set1, set2;
+				Assert.IsTrue(result1.TryGetValue(key, out set1));
+				Assert.IsTrue(result2.TryGetValue(key, out set2));
+				foreach (var val in setExpected)
+				{
+					Assert.IsTrue(set1.Contains(val));
+					Assert.IsTrue(set2.Contains(val));
+				}
 			}
 		}
 	}
